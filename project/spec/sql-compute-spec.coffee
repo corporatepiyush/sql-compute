@@ -2,30 +2,41 @@ describe 'Sql Compute Library', ->
 
   describe 'Select Clause', ->
 
-    it 'should raise an exception if value is not an Array', ->
-      command =
-        select : 'db.firstName'
+    describe 'Validations and Exceptions', ->
 
-      expect(-> new sqlCompute.Select(command).validate()).toThrowError("The value of 'select' should be of type Array")
+      it 'should raise an exception if value is not an Array', ->
+        command =
+          select : 'db.firstName'
+
+        expect(-> new sqlCompute.Select(command).validate()).toThrowError("The value of 'select' should be of type Array")
+
+      it 'should raise an exception if db alias is incorrect', ->
+        command =
+          select : ['db.firstName', 'db2.lastName']
+          from :
+              db : sqlCompute.ArrayDataSource([1, 2, 3])
+
+        expect(-> new sqlCompute.Select(command).validate()).toThrowError("Invalid database alias 'db2'")
 
 
   describe 'From Clause', ->
 
-    it 'should raise an expection if value is not an Array', ->
-      command =
-        from : 'db'
+    describe 'Validations and Exceptions', ->
 
-      expect(-> new sqlCompute.From(command).validate()).toThrowError("The value of 'from' should be of type Array")
+      it 'should raise an expection if value is not an Object', ->
+        command =
+          from : 'db'
+
+        expect(-> new sqlCompute.From(command).validate()).toThrowError("The value of 'from' should be of type JSON Object")
 
 
-    it 'should raise an exception provided list of datasource object does not conform', ->
-      command =
-        from : [
-                  { db1 : sqlCompute.ArrayDataSource([1,2,3]) },
-                  { db2 : 'illegal' }
-               ]
+      it 'should raise an exception provided list of datasource object does not conform', ->
+        command =
+          from :
+            db1 : sqlCompute.ArrayDataSource([1, 2, 3])
+            db2 : 'illegal'
 
-      expect(-> new sqlCompute.From(command).validate()).toThrowError("The value of 'datasource db2' should be of type either ArrayDataSource or CustomDataSource")
+        expect(-> new sqlCompute.From(command).validate()).toThrowError("The value of 'datasource db2' should be of type either ArrayDataSource or CustomDataSource")
 
 
   describe 'Where Clause', ->
